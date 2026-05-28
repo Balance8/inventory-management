@@ -5,6 +5,51 @@
       <p>{{ t('orders.description') }}</p>
     </div>
 
+    <!-- Submitted Restocking Orders -->
+    <div v-if="restockingOrders.length > 0" class="card">
+      <div class="card-header">
+        <h3 class="card-title">Submitted Restocking Orders ({{ restockingOrders.length }})</h3>
+      </div>
+      <div class="table-container">
+        <table class="restocking-table">
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Submitted</th>
+              <th>Items</th>
+              <th>Lead Time</th>
+              <th>Expected Delivery</th>
+              <th>Total</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="order in restockingOrders" :key="order.id">
+              <td><strong>{{ order.order_number }}</strong></td>
+              <td>{{ formatDate(order.submitted_at) }}</td>
+              <td>
+                <details class="items-details">
+                  <summary class="items-summary">
+                    {{ order.items.length }} item{{ order.items.length !== 1 ? 's' : '' }}
+                  </summary>
+                  <div class="items-dropdown">
+                    <div v-for="item in order.items" :key="item.item_sku" class="item-entry">
+                      <span class="item-name">{{ item.item_name }}</span>
+                      <span class="item-meta">{{ item.quantity.toLocaleString() }} @ {{ currencySymbol }}{{ item.unit_cost.toLocaleString() }}</span>
+                    </div>
+                  </div>
+                </details>
+              </td>
+              <td><span class="badge info">{{ order.lead_time_days }} days</span></td>
+              <td>{{ formatDate(order.expected_delivery) }}</td>
+              <td><strong>{{ currencySymbol }}{{ order.total_value.toLocaleString() }}</strong></td>
+              <td><span class="badge success">{{ order.status }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <div v-if="loading" class="loading">{{ t('common.loading') }}</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else>
@@ -79,7 +124,7 @@
 </template>
 
 <script>
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { api } from '../api'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
@@ -95,6 +140,7 @@ export default {
     const loading = ref(true)
     const error = ref(null)
     const orders = ref([])
+    const restockingOrders = ref([])
 
     // Use shared filters
     const {
@@ -121,6 +167,14 @@ export default {
         error.value = 'Failed to load orders: ' + err.message
       } finally {
         loading.value = false
+      }
+    }
+
+    const loadRestockingOrders = async () => {
+      try {
+        restockingOrders.value = await api.getRestockingOrders()
+      } catch (err) {
+        console.error('Failed to load restocking orders:', err)
       }
     }
 
@@ -153,13 +207,26 @@ export default {
       })
     }
 
-    onMounted(loadOrders)
+    const handleRestockingOrderSubmitted = () => {
+      loadRestockingOrders()
+    }
+
+    onMounted(() => {
+      loadOrders()
+      loadRestockingOrders()
+      window.addEventListener('restocking-order-submitted', handleRestockingOrderSubmitted)
+    })
+
+    onUnmounted(() => {
+      window.removeEventListener('restocking-order-submitted', handleRestockingOrderSubmitted)
+    })
 
     return {
       t,
       loading,
       error,
       orders,
+      restockingOrders,
       getOrdersByStatus,
       getOrderStatusClass,
       formatDate,
@@ -172,6 +239,12 @@ export default {
 </script>
 
 <style scoped>
+/* Restocking orders table */
+.restocking-table {
+  table-layout: auto;
+  width: 100%;
+}
+
 /* Fixed table layout to prevent column shifting */
 .orders-table {
   table-layout: fixed;

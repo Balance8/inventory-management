@@ -7,6 +7,7 @@ export default {
     finance: '財務',
     demandForecast: '需要予測',
     restocking: '補充',
+    reports: 'レポート',
     companyName: '触媒コンポーネンツ',
     subtitle: '在庫管理システム'
   },
@@ -310,6 +311,35 @@ export default {
     english: 'English',
     japanese: '日本語',
     selectLanguage: '言語を選択'
+  },
+
+  // Reports
+  reports: {
+    title: 'パフォーマンスレポート',
+    description: '四半期パフォーマンス指標と月次トレンドを表示します',
+    quarterlyTitle: '四半期パフォーマンス',
+    monthlyChartTitle: '月次売上トレンド',
+    monthOverMonthTitle: '前月比分析',
+    table: {
+      quarter: '四半期',
+      totalOrders: '注文数',
+      totalRevenue: '売上合計',
+      avgOrderValue: '平均注文金額',
+      fulfillmentRate: '達成率',
+      month: '月',
+      orders: '注文数',
+      revenue: '売上',
+      change: '変化',
+      growthRate: '成長率'
+    },
+    summary: {
+      totalRevenueYTD: '年初来売上',
+      avgMonthlyRevenue: '月平均売上',
+      totalOrdersYTD: '年初来注文数',
+      bestQuarter: '最良四半期'
+    },
+    notAvailable: 'N/A',
+    noData: '選択中のフィルターに該当するレポートデータがありません。'
   },
 
   // Common
